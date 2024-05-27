@@ -9,6 +9,7 @@ namespace Cache_Redis.Installer
         public void InstallService(IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers();
+            services.AddMvc();
         }
     }
 }

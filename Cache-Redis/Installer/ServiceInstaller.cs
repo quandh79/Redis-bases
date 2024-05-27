@@ -7,7 +7,7 @@ namespace Cache_Redis.Installer
     {
         public void InstallService(IServiceCollection services, IConfiguration configuration)
         {
-            throw new System.NotImplementedException();
+            
         }
     }
 }

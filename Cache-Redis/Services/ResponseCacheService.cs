@@ -20,8 +20,14 @@ namespace Cache_Redis.Services
 
         public async Task<string> GetCacheResponseAsync(string cacheKey)
         {
-            var cacheResponse = await _distributedCache.GetStringAsync(cacheKey);
-            return string.IsNullOrEmpty(cacheResponse) ? null : cacheResponse;
+            try
+            {
+                var cacheResponse = await _distributedCache.GetStringAsync(cacheKey);
+                return string.IsNullOrEmpty(cacheResponse) ? null : cacheResponse;
+            }catch (Exception ex)
+            {
+                return string.Empty;
+            }
         }
 
         public async Task RemoveCacheResponseAsync(string partern)
@@ -47,17 +53,23 @@ namespace Cache_Redis.Services
 
         public async Task SetCacheResponseAsync(string cacheKey, object response, TimeSpan timeOut)
         {
-            if(response == null)
-                return;
+            try
+            {
+                if (response == null)
+                    return;
 
                 var serializerResponse = JsonConvert.SerializeObject(response, new JsonSerializerSettings()
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 });
-            await _distributedCache.SetStringAsync(cacheKey, serializerResponse, new DistributedCacheEntryOptions
+                await _distributedCache.SetStringAsync(cacheKey, serializerResponse, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = timeOut
+                });
+            }catch (Exception ex)
             {
-                AbsoluteExpirationRelativeToNow = timeOut
-            });
+                
+            }
 
             
 

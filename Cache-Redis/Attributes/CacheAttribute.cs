@@ -14,7 +14,7 @@ namespace Cache_Redis.Attributes
     public class CacheAttribute : Attribute, IAsyncActionFilter
     {
         private readonly int _timeToLiveSecond;
-        public CacheAttribute(int timeToLiveSecond)
+        public CacheAttribute(int timeToLiveSecond = 1000)
         {
             _timeToLiveSecond = timeToLiveSecond;
         }
@@ -27,23 +27,23 @@ namespace Cache_Redis.Attributes
                 await next();
                 return;
             }
-            var cacheService = context.HttpContext.RequestServices.GetRequiredService<ResponseCacheService>();
+            var cacheService = context.HttpContext.RequestServices.GetRequiredService<IResponseCacheService>();
             var cacheKey = GenerateCacheKeyFromRequest(context.HttpContext.Request);
             var cacheResponse = await cacheService.GetCacheResponseAsync(cacheKey);
-            if (string.IsNullOrEmpty(cacheResponse))
+            if (!string.IsNullOrEmpty(cacheResponse))
             {
-                var contextResult = new ContentResult
+                var contentResult = new ContentResult
                 {
                     Content = cacheResponse,
                     ContentType = "application/json",
                     StatusCode = 200
                 };
-                context.Result = contextResult;
+                context.Result = contentResult;
                 return;
             }
 
             var excutedContext = await next();
-            if(excutedContext.Result is ObjectResult objectResult)
+            if(excutedContext.Result is OkObjectResult objectResult)
             {
                 await cacheService.SetCacheResponseAsync(cacheKey, objectResult.Value, TimeSpan.FromSeconds(_timeToLiveSecond));
             }
